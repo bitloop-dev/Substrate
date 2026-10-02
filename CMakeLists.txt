@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 3.21)
+project(Substrate NONE)
+
+include("${CMAKE_CURRENT_LIST_DIR}/tooling/findBitloop.cmake")
+
+bitloop_enable_languages(LANGUAGES C CXX)
+
+
+set(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/Substrate")
+file(GLOB_RECURSE SIM_SOURCES CONFIGURE_DEPENDS
+    "${SRC_DIR}/*.cpp"
+    "${SRC_DIR}/*.h"
+    "${SRC_DIR}/*.hpp"
+)
+
+bitloop_new_project(Substrate ${SIM_SOURCES})
+
+bitloop_finalize()
+
