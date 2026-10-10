@@ -49,6 +49,9 @@ struct Substrate_Scene : public Scene<Substrate_Scene>
 
     // ─────── AI hooks ───────
     #ifdef BITLOOP_DEV_MODE
+    std::uint64_t diagnostic_ticks = 0;
+    double diagnostic_time_seconds = 0.0;
+
     void traceFrame(SimTraceFrame& frame) const override;
     bool saveCheckpoint(SimCheckpointWriter& writer) const override;
     bool loadCheckpoint(const SimCheckpointReader& reader) override;

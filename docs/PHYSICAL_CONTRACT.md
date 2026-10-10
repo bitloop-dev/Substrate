@@ -1,0 +1,515 @@
+# F-contract — Shared physical and state contract
+
+Revision: draft 1.1, 2026-10-09. MindGraph task: `T-contract`.
+
+## 1. Status, inputs and scope
+
+This is a specification for independent numerical designs, not an implementation,
+solver selection, calibrated material model, or qualification result. The T-loop
+human approval supplied with this task authorizes continuation after the pilot;
+it does **not** approve the numerical values proposed here.
+
+**Every numerical fixture parameter, tolerance, horizon and resource limit in
+sections 5–8 is PROPOSED / UNAPPROVED.** Freeze an identified revision by human
+decision before using it to accept a numerical candidate. A failed candidate
+cannot change that revision's budgets to make itself pass. Mandatory ownership,
+paired accounting and honest failure follow D-accounting and D-failure.
+
+Inspected inputs: [project instructions](../AGENTS.md),
+[vision](../VISION.md), [pilot specification and findings](DIAGNOSTIC_PILOT.md),
+the actual [scene source](../Substrate/Substrate.cpp) and
+[header](../Substrate/Substrate.h), and retained pilot `checks.json` and
+`observations.json` in `.codex/runs/run0003_20261009_130412/`.
+The scene currently has lifecycle counters only; checkpoint hooks return false.
+The selected task in `.mindgraph/codex.local.json` lists T-loop as its dependency
+and no required input artifacts. Approval provenance is the user's T-loop handoff,
+not an inference from files. There is no existing physical core to preserve.
+
+A-scope remains the coupled proof followed by the interactive laboratory,
+including crawling, swimming and pumping. This contract first specifies passive
+chamber qualification and only reserves active interfaces. The 256-organism
+world, damage/repair campaign, thermal state and ten-minute endurance campaign
+are later work. No dependencies, framework changes or general extension system
+are introduced here.
+
+## 2. Authoritative ownership and identity
+
+| Owner | Authoritative state/responsibility | Reads or derives; never owns again |
+| --- | --- | --- |
+| C-world | Committed world revision, actual time, stable-ID allocation, material definitions, advancement schedule, validity policy, committed exchange totals | Coordinates the component stores below as one world; does not duplicate their arrays |
+| C-mechanics | Structural connectivity, rest geometry, constitutive parameters, positions and mechanical degrees of freedom, structural mass and momentum, support constraints | Receives content/fluid reactions; does not own their mass or inventories |
+| C-contents | Chamber membership, constituent amounts, total content mass, reference area/compressibility parameters and content inertia closure | Actual enclosed area and moments come from authoritative structural geometry; pressure and stored compression energy derive from that area and inventory |
+| C-fluid | Each resolved control volume's mass/species and consistent momentum representation; accepted fluid state | Face fluxes, pressure corrections, cut geometry and reconstruction caches are derived unless required for reproducible continuation |
+| C-boundary | No physical inventory; derives side-labelled cuts, wall kinematics, swept regions, transfer routes, traction/work mappings and support transitions | Reads structures; supplies proposals to the actual owners. A temporary flux record is not stored material |
+| C-biology | Construction requests, deterministic controller/reaction state, local sensing rules and resource-limited activity requests | Reads a constrained committed-state view; fuel remains in its owning inventory |
+| C-app | Scenario configuration, Bitloop adapter, observation/recording and explicit serialization | Calls world advancement; rendering, trace formatting, UI and file output never enter physical kernels |
+
+Use typed stable IDs for organisms, structural vertices/elements, chambers,
+material regions, supports and transfer ports where they have persistent physical
+meaning. IDs are unique within a world; an ID/generation pair is never silently
+reused. Restore the allocator and generations. Dense slots may move on compaction;
+external requests contain IDs and a world revision, not slots or pointers.
+Transient iteration indices, solver rows, quadrature points and cut fragments do
+not need permanent public IDs. Identify diagnostic grid locations by grid revision,
+cell coordinate and physical side. Connectivity through a cell is not evidence
+that opposite sides of a membrane communicate.
+
+One material amount has exactly one owner. Chamber interiors contain no resolved
+fluid inventory in these fixtures. The exterior grid covers only the exterior;
+there is no ghost copy of the chamber mass in its cells. Structural material has
+its own mass. The zero-thickness membrane below excludes no additional fluid area.
+Inventory-to-mass conversion belongs to material definitions; a cached total mass
+is a derived sum, never an additional conserved amount.
+
+## 3. Units, interfaces and exchange signs
+
+### 3.1 Area-based two-dimensional mechanics
+
+Use metre, second and kilogram as L, T and M; represented volume means area in
+square metres. There is no implicit one-metre thickness and no conversion to
+three-dimensional pressure. Any later thickness convention needs an explicit
+contract revision applied to all coefficients and accounts together.
+
+| Quantity | Unit / definition |
+| --- | --- |
+| Area A, areal density rho | m²; kg/m²; mass M = rho A |
+| Species amount q and concentration | kg of that constituent; q/A in kg/m². Species partition total mass, not extra mass |
+| Velocity, momentum, angular momentum | m/s; kg m/s; kg m²/s |
+| Force and line tension | kg m/s² (N) |
+| Two-dimensional pressure/stress p | N/m = kg/s²; pressure force on length dl is p n dl |
+| Line density, extensional coefficient S | kg/m; N; edge tension S times engineering strain |
+| Work/energy, power | N m (J); J/s; pressure work p dA |
+| Fuel-specific energy | J/kg, explicitly declared before active use |
+
+Geometry is right-handed x/y; positive rotation is counterclockwise. Chamber
+loops are counterclockwise; n points from chamber to exterior. Gauge pressure
+zero is the exterior reservoir. Uniform gauge shifts change no net closed-loop
+force, but boundary work must use one consistent pressure reference.
+
+### 3.2 Minimal data crossing ownership boundaries
+
+These are semantic records, not mandated C++ classes or an asynchronous bus.
+Use ordinary project-owned functions/data and stable references; no logging SDK
+or parallel world abstraction is required.
+
+| Operation | Inputs | Output and obligations |
+| --- | --- | --- |
+| Advance interval | Committed revision/time, positive requested duration, external schedule, work limits | Accepted duration, actual committed time/revision, completion or failure reason, attempt/work counts and bounded offending IDs |
+| Mechanical proposal | State view, duration, loads/constraints/material law | Candidate geometry/velocity, strain/energy, support reactions; no visible commit |
+| Boundary derivation | Old/proposed structures and duration | Oriented facets, side connectivity, exact polygon area/moments, swept-area mapping and minimum-support observations |
+| Content response | Chamber ID, candidate actual area/moments, candidate owned amounts and motion | Pressure, compression energy, inertia loads and finite proposed exchanges; no independent area evolution |
+| Fluid proposal | Owned grid state, sided old/new control volumes, wall motion, outer boundary data | Candidate inventories/momentum, pressure traction, integrated fluxes, convergence residuals and work |
+| Paired exchange | Revision, interval, source/receiver IDs, route/side, signed amounts/impulses/work | One record consumed exactly once by both owners at commit; invalid or stale references reject the proposal |
+| Observation | Committed revision and permitted local region/ports | Read-only quantities with units, sample time and validity; no access to candidate buffers |
+
+Orient an inventory route a→b: positive `Delta q` removes that constituent from
+a and adds it to b. Its carried momentum and energy use the **same** transferred
+amount and time integration, with equal/opposite postings. Transferred constituent
+masses sum to total transferred mass; for a nonzero transfer their dimensionless
+mass fractions sum to one. No negative donor inventory, teleportation or
+unpaired transfer is accepted. Exterior reservoir routes have an explicit external
+ledger rather than a fictional finite owner inside the simulation.
+
+Orient a mechanical exchange a→b: `J` is impulse delivered to b; a receives
+`-J`. Record application points or equivalent couples so angular momentum also
+closes. `W` is work delivered to b using the same contact/traction kinematics;
+a receives `-W`, apart from separately identified physical storage/dissipation.
+Internal pressure uses these same facet motions: chamber expansion dA>0 delivers
+`+p_ch dA` to the wall, and content compression energy changes by `-p_ch dA`.
+Exterior pressure force on the wall is `-p_ext n dl`. With equal constant pressure
+on both sides, the net pressure load is zero. Stationary supports do zero work;
+moving supports supply measured reaction work even when their net impulse is zero.
+
+For each owner, account for advected energy and mechanical work exactly once;
+for the whole domain use
+`r = Delta(K + U) - W_external - E_advected_in + E_advected_out + D_physical`.
+Here U includes actual elastic/compression stores, D_physical≥0 is declared
+physical dissipation, and r is numerical residual. Keep signed sums, sums of
+absolute local residuals and sums of positive residuals. Numerical loss is not
+heat, fuel or an energy reservoir. Open boundaries require both pressure work
+and advected kinetic/stored-energy flux; logging pressure alone is insufficient.
+
+### 3.3 Content inertia and reserved active interfaces
+
+Well-mixed composition does not mean zero content mass or zero inertia. Require
+a stated velocity closure over the chamber with density M/A. It must reproduce
+rigid translation/rotation and affine dilation exactly: momentum M v_c, rotational
+inertia `(M/A) integral |x-c|² dA`, and kinetic energy
+`0.5 (M/A) integral |v(x)|² dA`. Inertial reactions, including geometry-dependent
+terms, must be derived consistently from that closure. A boundary mass copy is
+not permitted. Non-affine closure/interpolation is a numerical-design choice:
+each candidate must state it, demonstrate positive kinetic energy and paired work,
+and freeze it before the non-affine tests. Matching those integral requirements
+is the interface requirement; this document does not select an interpolation.
+
+Reserve only these active operations, inactive in every passive fixture:
+
+- Finite transfer request: connected port IDs, donor/receiver side, constituent
+  amounts or rates integrated over a duration, and available-donor limits. Return
+  actual accepted amounts and paired momentum/energy. Permeability laws deferred.
+- Fuel-limited stress request: actuator/material IDs, bounded target stress/strain,
+  duration, named fuel owner and a declared work-cost/efficiency law. Reserve fuel
+  before staging, settle actual cost on commit, release reservations on rejection.
+  Zero available fuel cannot supply positive active work; numerical residual never
+  replenishes fuel. Detailed metabolism and constitutive actuation laws deferred.
+- Constrained sensing request: allowed attached elements/ports or finite spatial
+  radius, named observables, sampling interval and committed revision. Controllers
+  cannot read global solver settings, hidden distant fields or trial states.
+  Controller state/clock and any RNG are transactional. Neural/evolution algorithms
+  are deferred; these records do not prescribe a general controller framework.
+
+## 4. State lifecycle, failure and restart
+
+Initialize and validate state at t=0 before any process tick. Initial observation
+is distinct from post-commit tick 1. For requested interval [t,t+H], C-world stages
+candidate substeps against the last valid committed state. Exchanges, geometry,
+solves, inventories and safety checks succeed together before a substep commits.
+Readers see only a committed revision. Drawing or the number of viewports cannot
+advance time; the app must not use the pilot's frame counter as physical time.
+
+Choose **prefix commit** semantics: accepted substeps may remain committed when
+a later substep cannot advance. Return `advanced < requested` and the actual time;
+the failed substep leaves the preceding committed state bitwise unchanged,
+including inventories, counters, RNG, controller clocks and physical ledgers.
+Attempt statistics may change in an external diagnostic record. The app reports
+the incomplete interval and stops that experiment; it cannot label t+H as reached
+or silently continue frozen dynamics. A later explicit retry starts from that
+reported prefix, not from a fabricated full-frame state. Full interval rollback
+is not required and must not be presumed by consumers.
+
+Validate finite state, legal topology/IDs, positive areas/masses, nonnegative
+species, minimum support, paired exchanges, pressure convergence and quality
+budgets before commit. Invalid candidate state is never made visible. Bound retries
+and iteration work; exhausting any cap returns a reason (invalid configuration,
+unsupported geometry, solver nonconvergence, invalid candidate or work limit),
+first failing time and affected IDs. Never clip negative amounts, remove thin
+walls, mix disconnected fragments, skip elapsed time or freeze active terms to pass.
+Restoration/staging may use journals, reusable buffers or copies; measure all costs.
+
+Checkpoint-relevant state: schema/configuration/material/contract identities;
+committed time, tick/substep schedule and revision; ID allocation/generations;
+connectivity/rest state; owned geometry/velocities/momenta and mass/species;
+chamber reference-area/energy parameters and inertia closure state; fluid state;
+controller/RNG state and future external-event cursor; cumulative physical and
+numerical accounts needed to continue the same experiment. Save caches or warm
+starts if their omission changes the accepted trajectory/iteration path; otherwise
+declare a deterministic rebuild. Do not serialize uncommitted proposals as restart
+state. Validate/load into a candidate world, then swap on success; failed load
+preserves the live world. View/camera state is separate. Future save/restore work
+must compare uninterrupted continuation; the existing false-returning hooks supply
+no such guarantee today.
+
+## 5. Proposed common fixture definition
+
+All values below require approval. They are synthetic scales, not measured tissue.
+All physics quantities/accumulators use binary64 for the reference campaign; report
+any different precision as a separate candidate. No randomness; fixed construction
+order and seed recorded as “unused”. Gravity, viscosity, membrane damping,
+permeability, reactions and active stress are zero in the base inviscid fixture.
+Any physical damping extension is a separately identified fixture with an energy law.
+
+### 5.1 Geometry and constitutive reference
+
+- Domain: disk of radius Ro=4 m, centred at (0,0), embedded in an 8×8 m Cartesian
+  grid. Only its interior is active. Exterior fluid occupies the region outside
+  the chamber and inside the disk, density rho_f=1 kg/m², initially at rest.
+  The disk boundary is a pressure reservoir p=0 with compatible incoming state
+  (same constituent/density, zero tangential velocity); log signed mass, momentum
+  and energy fluxes. Do not also impose zero normal flux. This permits expansion
+  of a chamber in incompressible exterior fluid without an impossible closed-box
+  volume constraint. Internal walls are impermeable and free-slip.
+- Chamber: regular counterclockwise N=128 polygon of circumradius R0=1 m,
+  vertices `(cos(2 pi i/N), sin(2 pi i/N))`. All coordinates and exact polygon
+  area/moments, not pi R², define the discrete authoritative geometry.
+  `A0 = N R0² sin(2 pi/N)/2`; `l0 = 2 R0 sin(pi/N)`.
+- Membrane: material line density lambda=0.1 kg/m, fixed structural mass
+  `M_s = lambda N l0`, half each edge mass to its two endpoints. Rest lengths l0;
+  edge strain e=(l-l0)/l0; tension T=S e with S=1 N; energy per edge
+  `S (l-l0)²/(2 l0)`. No bending or compression buckling law is claimed. Base
+  compliant tests stay tensile or at rest; imposed compression uses a kinematic
+  wall variant explicitly replacing the elastic response, rather than accepting
+  an unsupported compressed membrane model.
+- Contents: one constituent, rho_ref=1 kg/m², owned mass M, `Aref=M/rho_ref`,
+  K=10 N/m. `p_ch = K(Aref/A - 1)` and
+  `U_ch = K[A - Aref - Aref ln(A/Aref)]`, so `-dU_ch/dA = p_ch` at fixed mass.
+  This synthetic barotropic law and affine-consistent inertia define the passive
+  content contract. Use A/Aref in [0.8,1.2]; outside it is unsupported, not clipped.
+  Transferred-mass energetics of this law are deferred with active transfer laws.
+- Base equilibrium: M=rho_ref A0, zero velocities, p_ch=p_ext=0, zero strain.
+  Dynamic expansion variant: M=1.10 rho_ref A0, initial A=A0 (p_ch=1 N/m),
+  zero velocities. This changes initial inventory, not an unaccounted mid-run source.
+- Grid h=1/16 m (128×128 bounding grid); temporal base substep dt=0.00125 s,
+  calculated output interval H=0.02 s. Compliant material spacing l0≈0.0491 m.
+  Refinements double N and halve h; reuse the same continuum parameters, not
+  the same per-edge mass or spring constant.
+
+Minimum supported free-fluid passage width g_min=4 h_base=0.25 m, held fixed in
+physical units on finer grids. Minimum separation of opposed surfaces is also
+0.25 m for this campaign. This excludes adjacent elements and pairs on the same
+smooth membrane neighbourhood within 0.5 m of rest arclength; otherwise even the
+initial polygon's second-neighbour vertices would spuriously violate the limit.
+Membranes have zero geometric thickness but retain
+explicit side topology at every resolution. Require positive edge lengths ≥0.5 l0
+and finite simple non-self-intersecting chamber boundaries. Grid alignment can
+produce arbitrarily small cut fragments despite these physical feature limits;
+this is not grounds to delete material or relax g_min. Exact zero-measure cuts
+may change representation only through an accounted support transition.
+
+### 5.2 Required cases and independent oracles
+
+Each case includes per-owner/local checks as well as global totals. A common
+global area or energy sum cannot cancel a local sign/side error. Reset state for
+each case; forces generated by prescribed wall motion are external and metered.
+
+| ID | Construction and forcing | Local oracle | Global/reference oracle |
+| --- | --- | --- | --- |
+| Q0 equilibrium | Base chamber; also repeat at offsets (0,0), (h/2,h/2), (h/3,h/5) and rotations 0, pi/7 | Every velocity, edge strain and pressure difference stays zero within budgets; equal/opposite traction on each facet | No centre drift, net force/torque, area change or unforced energy gain |
+| Q1 free expansion | Compliant inflated-inventory chamber, released from rest in exterior fluid | Area-derived pressure, tensile strain, radial velocity field and facet work; record nonradial modes instead of averaging them away | Circular continuum reference below plus polygon refinement; radius extrema, phase, momentum and accounted energy agree |
+| Q2 compression/recovery | Prescribed regular polygon radius `R(t)=1-0.05[1-cos(2 pi t/2)]` m; M=rho_ref A0. Period 2 s; R spans 0.9–1. Replace membrane elastic loads by the moving support, retain structure/content inertia | Exact polygon A(t)=A0 R(t)²/R0², p(A), swept volume and local normal velocity; no wall leakage | Over each cycle chamber U returns to initial; integrated support work, open-boundary energy flux and residual close. Compression work on contents is positive |
+| Q3 sealed translation | Prescribed base polygon centre `c_x=0.5 sin²(pi t/2)` m, c_y=0, period 2 s; orientation fixed; starts at rest | Zero relative wall-normal flux; constant content amounts/area; adjacent fluid and wall motion remain compatible | Net fluid volume constant, content translation inertia M v_c, paired total impulse/support work. Drag/flow values compared under refinement, not asserted zero |
+| Q4 sealed rotation | First prescribed base polygon, then equal-area ellipse sampled with semiaxes a=1.25 m, b=0.8 m; `theta=(pi/2)[1-cos(2 pi t/2)]`, period 2 s | Exact rigid polygon area, rigid content angular inertia from area moments; side preservation at rotating corners | Circular continuum/free-slip limit has no exterior flow from purely tangential wall motion; finite polygon departures must converge. Ellipse pressure torque/work is not assumed zero; compare refinements |
+| Q5 narrowing/support | Add two impermeable capsule-shaped supports and the prestressed chamber defined below, initially at rest. `g(t)=0.375+0.125 cos(2 pi t/2)` m, period 2 s; minimum 0.25 m. Translate supports in y and account their external work | Fluid can flow around ends; monitor both gaps, fragment areas, connectivity, swept-area fluxes, pressure extrema and neighbouring side inventories | No artificial force/work/inventory jump when facets cross grid faces/vertices; compare integrated reactions and flow fields under grid/phase refinement. Keep chamber compliant; actual deformed clearance, not nominal g, determines support validity |
+| Q6 bounded failure | Q5 supports with `g(t)=0.5-0.3 sin²(pi t/4)` m for 0≤t≤2 s, chamber shape fixed; separately force pressure-solve failure on a chosen attempt and supply invalid nonfinite input | Reject unsupported g<0.25 before commit; rejected candidate changes no committed physical state, RNG or accounts | Actual time/prefix and reason match the last successful substep; retry/iteration limits hold; no fabricated success, disappearing wall or silent frozen motion |
+
+Q5's supports are externally prescribed rigid solids: all points within distance
+r_cap=0.125 m of the horizontal segment from (-2,y_c) to (2,y_c), with
+`y_c=±(1+g+r_cap)`. Their nearest surfaces are at y=±(1+g), giving the stated
+nominal gaps. Each solid excludes area `8 r_cap + pi r_cap²` from the fluid.
+Their geometry belongs to the mechanical supports; exterior actuators absorb
+reaction impulse/work, with no finite support inventory inside the world.
+Use the same capsule geometry for collision, fluid cuts and swept-area mapping.
+If unsupported, report that result; do not substitute a different fixture.
+
+Q5 starts in a tensile equilibrium rather than an unstressed ring subject to
+immediate external compression. Keep the R0 polygon, set rest edge length
+`l_rest=l0/1.1`, S=1 N and structural mass `lambda N l_rest`; the initial tension
+is T0=0.1 N. Set content mass `M=rho_ref A0[1+T0/(K R0 cos(pi/N))]` so uniform
+internal pressure exactly balances the discrete radial edge forces. Fluid starts
+at p=0 and v=0. Edge strain uses l_rest in this case. Monitor tensile validity
+throughout; if any edge requires negative tension or the actual gap drops below
+the supported limit, the compliant case is unsupported and must be reviewed,
+not repaired by clipping tension. The kinematic Q6 variant uses the base polygon
+and inventory and does not claim this compliant response.
+
+For Q3/Q4 the driven wall replaces compliance only to isolate sealed-motion
+coupling; it does not qualify deformable mechanics. Q1 and Q5 do. For Q5 add
+translations of the entire fixture relative to the grid and phases selected so a
+facet passes within 1e-2, 1e-4 and 1e-6 h of a grid vertex, on both sides. Exact
+alignment is a separate case. Record the actual minimum cut fraction and cell IDs.
+Apply the same physical geometry to refinement runs; do not scale the gap with h.
+
+For Q1 use an independent circular, radial reference (not the candidate's own
+pressure solver). Let R be radius, v=dR/dt, a=d²R/dt²,
+`A=pi R²`, `Aref=1.1 pi R0²`, `M=1.1 rho_ref pi R0²`,
+`M_s=2 pi R0 lambda`. Exterior radial velocity is `u(r)=R v/r`. With p(Ro)=0,
+the wall-side exterior pressure is
+`p_f(R)=rho_f[(R a+v²) ln(Ro/R) + 0.5 v²(R²/Ro²-1)]`.
+Integrate the scalar equation
+`(M_s+M/2) a = 2 pi R[p_ch-p_f(R)] - 2 pi S(R/R0-1)`.
+Its acceleration coefficient after collecting terms is positive:
+`M_s + M/2 + 2 pi rho_f R² ln(Ro/R)` for R<Ro.
+The M/2 term follows from uniform content affine-dilation kinetic energy M v²/4.
+Include kinetic energy carried out of the open outer boundary in its energy check.
+Converge the independent reference to ≤1/10 of the candidate comparison budgets
+before use. Finite-polygon area, mass and force differences are discretization
+errors to measure under N refinement, not errors to erase by substituting pi R².
+
+## 6. Proposed budgets and refinement gate
+
+Define scales once per fixture before running: L*=R0=1 m, A*=A0, U*=1 m/s,
+M*=rho_ref A0, P*=K=10 N/m, J*=M* U*, and a fixed nonzero energy scale E*.
+For Q1 E* is its initial compression energy (about 0.152 J); for Q2–Q5 E* is
+the larger of 0.01 J and the peak kinetic energy, change in stored energy from
+its initial value, or absolute work per cycle
+from the independently converged reference run. Freeze that value before testing
+candidates. Never use a candidate's growing energy or a large background store
+as its own denominator. For Q0 use the explicit absolute tolerances below.
+
+Let interval residual r_k cover one H=0.02 s output interval, including every
+accepted substep/exchange. Local residuals are owner/cell/facet terms assigned
+using one declared partition of storage and work. Report their signed sum and
+L1 sum; count an internal exchange once in the combined L1 audit. Values cannot
+cancel by aggregating unrelated sides. Cumulative budgets do not reset per cycle.
+
+| Quantity | Proposed local / interval limit | Proposed whole-horizon / reference limit and rationale |
+| --- | --- | --- |
+| Identity, finite state, side topology | Zero invalid IDs, nonfinite values, negative inventory, self intersections or forbidden routes; failed candidates reject | Zero committed hard violations; these are validity requirements, not average error budgets |
+| Mass/species balances | Paired postings use one amount; residual per owner per H ≤1e-10 M* | Absolute signed global closure ≤1e-8 M* after external fluxes; also sum absolute owner residuals ≤1e-7 M*. Floating-point accounting allowance, not permitted physical loss |
+| Impulse / torque pairing | Pair residual ≤1e-10 J* and 1e-10 J* L* per H | Global residual after external impulses ≤1e-7 J* and 1e-7 J* L*. Advected momentum included |
+| Geometric area consistency | Polygon area vs sum sided cut areas: ≤1e-8 A* globally and ≤1e-7 h² per affected cell; each fragment relative error ≤1e-5 against independent clipping when its area is nonzero | Cumulative absolute swept-area/flux mismatch ≤1e-6 A*. Small fragments cannot hide behind an h² denominator alone |
+| Content / chamber volume | Prescribed Q2–Q4 area error ≤1e-6 A*; content pressure must use that same area | Q1/Q5 area trajectory error vs reference ≤0.5% A*, peak ≤1%; no secular volume drift over later windows |
+| Leakage across sealed barriers | Constituent flux across an intact wall is identically zero by route topology; reconstructed relative normal-flux residual per facet ≤1e-8 U* times facet length | Integrated absolute diagnostic leakage ≤1e-7 A* over horizon; signed cancellation does not pass. Any actual forbidden constituent transfer rejects regardless of its size |
+| Equilibrium / passive drift | Q0 max speed ≤1e-7 U*, max pressure imbalance ≤1e-7 P*, per-vertex displacement ≤1e-6 L* | Q0 energy gain ≤1e-10 M* U*², COM drift ≤1e-6 L*. No sustained unforced propulsion |
+| Energy error (Q1–Q5) | Sum absolute local residuals per H ≤0.1% E*; every local term also ≤that cap | Sum absolute residuals ≤2% E* and sum positive residuals ≤0.5% E* over full horizon. Report signed drift too; physical dissipation separately, zero in these inviscid fixtures |
+| Deformation / motion | Q1 nonradial displacement RMS ≤0.2% L*, max ≤0.5% L*; per-edge strain error vs mapped reference ≤0.01 absolute | Reference trajectory position RMS ≤0.5% L*, max ≤1%; radius extrema ≤1%, period ≤1%, phase error ≤0.02 cycle by horizon. Late-window error growth remains within these same limits |
+| Fluid field / reactions | Away from wall (distance ≥2h), Q1 radial-velocity RMS error ≤2% U*, max ≤5% U*; report near-wall errors separately using sided samples | Maximum pointwise force/torque error and per-cycle support-work error ≤2% of fixed reference peak force/torque/absolute cycle work, with zero-reference floors 1e-6 P* L*, 1e-6 P* L*², 1e-6 E*. Time-integrated force/torque use the separate impulse/angular-impulse budgets |
+| Pressure solve / incompressibility | Independently recomputed residual relative L2 ≤1e-8 (or absolute ≤1e-10 after fixed nondimensionalization); additionally each cell volume defect per substep ≤1e-8 of its actual fluid area | Max local divergence defect ≤1e-6 s^-1, including small fragments. Log true residuals, not preconditioned norms alone; failed solves reject |
+
+The percentage budgets protect small useful deformations/work while screening
+obviously dissipative or energy-producing coupling. The tighter inventory and
+geometry limits protect ownership and leakage. These are starting proposals, not
+empirically affordable tolerances. A pressure null space has a declared gauge;
+nondimensionalize lengths by L*, time by L*/U* and pressure by rho_f U*² before
+computing residual norms. Flux/GCL defects use the actual moving control volume
+and wall velocity, not divergence of velocity on an obsolete geometry.
+
+Refinement matrix: base (h,N,dt), temporal (h,N,dt/2) and (h,N,dt/4), spatial
+(h/2,2N,dt/2) and (h/4,4N,dt/4). Compare equal physical times, geometry,
+constitutive values and input phase. For each trajectory/field observable, define
+the refinement floor as 0.01 times its absolute acceptance limit from the table,
+using its frozen scales and the same norm; for example, the position-RMS floor
+is 5e-5 L*. Hard invariants must pass independently and have no refinement waiver.
+When either successive-resolution difference exceeds that floor, fine/medium
+differences must be ≤0.7 times medium/base differences; lack
+of improvement is inconclusive/failing convergence, not acceptance. At or below
+the floor report all differences without requiring a meaningless ratio. Pressure
+iterations alone are not a refinement study. Independently verify the reference
+solution, polygon clipping and exchange oracle on analytic good/bad cases so the
+candidate cannot certify itself. Grid/structure error must be distinguished from
+time error and continuum-vs-polygon discrepancies.
+
+## 7. Proposed horizons, bounded advancement and rejection screen
+
+Qualification begins only after parameter/budget approval and implementation of
+the required oracles. H=0.02 s contains 16 base substeps. Permit at most four
+halvings per substep (dt_min=dt/16), 512 attempted substeps per H, four outer
+coupling iterations per attempt and 200 pressure iterations per outer iteration.
+Count unsuccessful attempts, preconditioner rebuilds and all inner work; a method
+with nested iterations must declare additional finite inner caps before testing.
+Maximum vertex displacement per attempt ≤0.25h; maximum fractional chamber area
+change ≤1%. Exceeding either triggers bounded subdivision, never motion clipping.
+These caps are proposed feasibility limits, not permission to accept bad residuals.
+
+The passive **rejection screen** runs each Q0–Q5 at base resolution for 2 s
+(100 calculated intervals; 1,600 nominal substeps), including one full driven
+cycle and phase offsets/cut-fraction cases. It includes actual pressure solves,
+geometry construction, content inertia, mechanics, staging, reconciliation,
+commit safety and rejected work. Q6 additionally verifies one recoverable
+injected failure followed by successful retry, repeated injected failure until
+cap exhaustion, and unsupported geometry. Failure injection stays development-only.
+A short screen can reject a method on quality, unsupported geometry or cost;
+passing it is not passive adoption or a laboratory throughput demonstration.
+
+For later behavioral qualification propose 20 s (16,000 nominal substeps), then
+40 s (32,000), with full-history budgets carried from t=0. Driven cases cover
+10 and 20 cycles; the characteristic R0/U* time is 1 s. Q1's actual oscillation
+period must be measured from the converged radial reference and the horizon
+extended to at least 20 periods if longer. Extend to 80 s if new extrema, secular
+drift or event-rate changes remain unresolved; if the bound still cannot cover
+the required periods or settle uncertainty, stop inconclusive pending review.
+No ten-minute or rich-world endurance claim follows from these horizons.
+
+Run finite/ID/topology, inventory, geometry, minimum-gap, pressure convergence,
+leakage and energy monitors on every candidate/commit. Retain first/worst failure,
+extrema, cumulative residuals and bounded affected IDs. Complete-state inspection
+at t=0, first commit, first full cycle, turning points, each support transition,
+and final time; add phase-offset samples to avoid observing only quiet phases.
+Sparse semantic traces are allowed only behind those continuous monitors. Compare
+20–40 s windows for drift rather than judging a healthy final picture. Stop on a
+hard violation; retain the last valid state and rejected proposal's diagnostics.
+Use snapshots to explain geometry, not to infer physical correctness. Checkpoints
+are optional only after continuation equivalence and useful restart economics.
+
+## 8. Proposed timing, memory and evidence boundaries
+
+Time a complete requested H from state preparation through geometry/spatial work,
+mechanics, contents, pressure, fluid reconciliation, safety and commit, including
+allocation, cache/preconditioner rebuilds, retry restoration and every rejected
+attempt. If incomplete, report actual advanced time and failure; do not count H
+toward throughput. Separate initialization cost, but include recurring lazy setup
+and refresh in the interval where they occur. Include in-process safety monitors
+in the primary cost; report optional heavy diagnostic scans separately as well as
+in their actual total intervals. Report rendering, trace/snapshot/checkpoint I/O
+and total user-facing elapsed time separately, never omit them silently.
+
+Memory boundary: peak bytes of all component state, both committed and candidate
+storage, rollback/journals, derived geometry, solver matrices/preconditioners,
+temporary work, thread scratch and in-process physical diagnostics. Include
+allocator capacity and peak transients, not just live logical elements. Also
+report process peak working set/private bytes; framework, rendering, file buffers
+and shared library overhead belong there even if outside simulation allocation
+accounting. A missing component means the memory claim is incomplete.
+
+Proposed base-screen rejection limits: mean ≤20 ms per H, p95 ≤40 ms, maximum
+≤100 ms, peak simulation allocation ≤256 MiB. These are necessary single-chamber
+screens against the eventual one-simulated-second-per-wall-second laboratory goal,
+not an allocation of that laboratory budget or an extrapolation to 16 organisms.
+Measure every interval, report nearest-rank p95/p99, maximum and all failures.
+Repeat each complete screen three times; report each run rather than pooling away
+bad tails. Run with one worker and with up to 16 workers on the proposed Ryzen 9
+9950X3D reference; record actual CPU, OS, compiler, build, precision, worker count,
+thread settings and competing load. Hardware availability is not assumed.
+Refinement runs report their full cost but do not inherit the base memory/time cap.
+
+Record active cells and cut fragments per side, tiny-cell distribution, vertices,
+edges, chambers, pressure unknowns/iterations, coupling passes, accepted/rejected
+substeps and safety-scan work. No sleeping or disabled fluid/structure qualifies
+as this workload. Emit compact evidence under `.codex/runs/runNNNN_YYYYMMDD_HHMMSS/`
+using existing Bitloop tracing/snapshots through C-app; no MindGraph runtime code
+enters physics. Record contract revision/approval, exact configuration and dirty
+source identity, commands, units, thresholds, failures, limits and stopping reasons.
+
+## 9. Task acceptance and approval handoff
+
+| T-contract criterion | Located specification |
+| --- | --- |
+| Owners, IDs, units, signs, lifecycle, failure, checkpoint state | Sections 2–4 |
+| Geometry, coefficients, feature limits and five physical oracles | Sections 5.1–5.2, Q0–Q6 |
+| Local/cumulative budgets, rationale and refinement | Section 6; all values unapproved |
+| Complete cost/memory boundary and difficult passive rejection screen | Sections 7–8 |
+
+Before physical qualification, approve this draft's fixture scales and laws,
+feature limits, residual/behavior budgets, horizons, work/resource caps and
+reference execution configuration. Candidate designs must additionally supply
+their non-affine inertia closure, discrete exchange/geometry mappings and
+independently checked reference implementations. Those are downstream algorithm
+deliverables, not missing implementations concealed by this specification.
+T-contract completion means the common contract is located and reviewable;
+it does not approve its proposed numbers or certify an unbuilt solver.
+
+## 10. Specification checks performed for T-contract
+
+These are document/algebra checks, not measurements of a physical implementation.
+Used the local Bitloop skill's lifecycle/checkpoint and simulation-health guidance
+to define commit boundaries and horizons, plus its performance guidance to define
+complete-work costs. Relevant capability meanings: `bitloop`, `simulation-health`
+and `snapshots-checkpoints`; no runtime capability was newly exercised.
+
+PowerShell arithmetic checks of section 5 evaluated the polygon formulas and
+compared `-dU/dA` by centred differences (area perturbation 1e-5 m²) with p(A).
+Observed A0=3.140331156954753 m², l0=0.049082457045824576 m,
+M_s=0.6282554501865546 kg, Q1 initial U=0.1520296424045403 J.
+Pressure/energy derivative disagreement was 1.12e-10 N/m, below the 1e-8 N/m
+arithmetic audit tolerance. Q2 minimum A/Aref=0.81 is inside the proposed
+[0.8,1.2] range; peak pressure is 2.3456790123456783 N/m.
+Q6 crosses the nominal 0.25 m limit at 1.4645590543975402 s, derived from
+`4 asin(sqrt(5/6))/pi`; a committed substep beyond that crossing must reject.
+Full four-level subdivision of 16 base steps takes at most 496 tree-node attempts,
+within the proposed 512 cap, with dt_min=7.8125e-5 s.
+
+At radial-reference R=1.02 m and v=0.1 m/s, substituted the scalar acceleration
+into the derivative of total structure/content/exterior kinetic plus stored
+energy. Adding outward kinetic-energy flux `pi rho_f (R v)^3/Ro²` left
+-7.71e-17 W, below a 1e-12 W identity-audit tolerance. This checks the reference
+equation's work sign, not a numerical trajectory. Q5's prestress gives
+p=0.1000301272041302 N/m, M=3.1717439294640806 kg and structural mass
+0.5711413183514132 kg; the discrete per-vertex pressure minus edge-force residual
+was zero at binary64 evaluation precision.
+
+Document inspection checked all seven Q0–Q6 cases, all four task acceptance rows,
+approval labelling, units/owner/exchange consistency and both local/global gates.
+PowerShell `Test-Path` verified all five Markdown links. Trailing-whitespace
+inspection and `git diff --check` passed. `Get-FileHash` comparisons against the
+pilot's retained `source-hashes.json` confirmed that both Substrate source files
+were unchanged by T-contract. No configure, build, solver run, physical gate or
+performance benchmark was needed or claimed for this specification-only task.
+
+### Recovery recheck
+
+Draft 1.1 preserves the specification and corrects dimensional wording: transferred
+constituent masses sum to mass, fractions sum to one; force/torque histories use
+force/torque scales, while their time integrals use impulse scales. It also defines
+the formerly unspecified refinement floor. The recovery repeats the document,
+link, source-preservation and arithmetic checks rather than treating the previous
+completion message as validation. These corrections do not approve any proposed
+value or change a production interface.

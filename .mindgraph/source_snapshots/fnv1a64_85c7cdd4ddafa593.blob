@@ -1,0 +1,126 @@
+# Substrate: design the engine, then prove its foundation
+
+## What we are building
+
+Substrate is a two-dimensional physical world for artificial life. Organisms should be assembled from deformable tissue, membranes, contractile structures and contained material. Their motion consumes resources; nutrients follow physical transport paths; organisms interact through contact, shared flow and their environment. The eventual aim is hundreds of active organisms over useful recorded durations, with growth, damage, repair and reproduction built on the same physical rules.
+
+The immediate objective is to **design an understandable, implementable engine foundation and demonstrate its first coupled physical primitive**. A short list of milestones is insufficient. The plan must expose the engineering inside those milestones so a worker is not asked to invent and implement an entire numerical engine in one task.
+
+Generate a complete design and implementation plan for the first prototype below. Also show how its responsibilities fit the eventual engine. Later capabilities belong in the architectural scope discussion; do not generate their implementation tasks or build speculative extension systems. This document is self-contained planning input. Earlier visions and generated solver choices are background, not additional scope or approved numerical designs.
+
+## First physical deliverable and scope
+
+Demonstrate one supported, deformable chamber in an external fluid:
+
+- A closed membrane transmits elastic and contractile forces. Its enclosed contents have a declared mass, inertia and pressure response tied to actual geometry.
+- Membrane motion displaces fluid; fluid forces act back on the membrane. Supports are permitted, with their reactions accounted for. Motion must result from forces and constraints rather than prescribed animation.
+- Environmental nutrient crosses the membrane at a finite rate, supplies internal fuel and limits actuator work. Demonstrate depletion and replenishment with explicit source and reaction accounting.
+- A basic Bitloop view shows deformation, fluid motion and fuel. The same authoritative simulation runs headlessly with numerical checks.
+
+Use fixed topology, supported non-self-intersecting shapes and separated bodies. Swimming, directional pumping, contact resolution, wounds, growth, thermal physics, phase changes, adaptive resolution, remeshing and evolution are outside this first implementation. Unsupported geometry must be detected rather than silently repaired or erased.
+
+After the single chamber qualifies, screen 16 active, separated chambers in one shared 128 by 128 environmental grid, with at most 128 membrane vertices per chamber. Supports may prevent contact; shared fluid interaction and meaningful activity must remain. The proposed pilot target is one simulated second per wall-clock second on the Ryzen 9 9950X3D using at most 16 CPU workers. Freeze geometry, coefficients, activity, resolution and quality thresholds before timing.
+
+This is a foundation screen. Passing it does not establish the later freely interacting biological world.
+
+## Architecture the plan must explain
+
+Prefer explicit deformable structures, spatial fluid/transport fields and inexpensive well-mixed compartments where unresolved internal flow is acceptable. This is a starting hypothesis. A spring membrane, barotropic chamber, fan-based inertia or cut-cell fluid scheme is a candidate requiring justification, not an architectural fact established by naming it.
+
+Explain these responsibilities, their authoritative state and their exchanges. They need not each become a class, library or directory.
+
+| Responsibility | Design required now | Later boundary to preserve without implementing it |
+| --- | --- | --- |
+| World state and advancement | Ownership, units, time, configuration, commit boundary and failure semantics | One world and advancement schedule as processes are added |
+| Structural mechanics | Geometry, mass, constitutive response, support constraints and contractile force application | Tissue, stiff structures and contact should compose through physical interfaces |
+| Contained material | Contents mass/inertia, pressure, concentration, stored energy and validity of the reduction | Spatial internal flow may eventually require a different representation |
+| Environmental fluid | Control volumes, velocity/momentum, pressure, viscosity, outer conditions and conservation | Organisms share a medium; the fluid is not an isolated per-body effect |
+| Boundary exchanges | Occupancy, swept geometry, impermeability, paired forces, work and species transfer | Permeability, openings and rupture eventually use explicit exchanges |
+| Resources and activity | Nutrient amounts, fuel conversion, actuator requests and affordable work | Controllers request local actions without directly setting physical state |
+| Construction, presentation and experiments | Build the fixture, request advancement, read state and retain evidence | Scenarios and diagnostic formats remain outside physical laws |
+
+The design must include an explicit advancement sequence: what is read, predicted, solved, exchanged, checked and committed; which quantities are evaluated at which time; what is repeated during coupling iterations; and what is restored on rejection. A diagram of component names does not substitute for that sequence.
+
+## Physical requirements
+
+- Use consistent two-dimensional units. Represented volume means area unless a thickness conversion is declared consistently.
+- Advance the requested simulated interval independently of rendering. Commit finite, valid state only. Failure preserves the last valid state and its actual time; never skip failed intervals.
+- Give each material/resource amount one authoritative owner. Keep inventories nonnegative and close balances to declared floating-point tolerances. Transfers are paired; sources, sinks and reactions are explicit.
+- Make occupied geometry, volume, flux and pressure work compatible. A membrane must not leak through ordinary interpolation. Nutrient permeability does not imply bulk-fluid permeability.
+- Pair internal mechanical exchanges with reactions. Distinguish physical work, stored energy, physical dissipation and numerical residuals. Numerical loss is not automatically heat or fuel; unexplained sustained energy growth is unacceptable.
+- Permit measured numerical damping only within a predeclared local and cumulative budget that preserves the behaviours being tested. Check local fields and features as well as global totals.
+- Freeze acceptance thresholds before candidate evaluation. Requirement changes need a human decision; failure must not cause automatic tolerance relaxation.
+
+Do not conceal incompatible assumptions. In particular, explain how chamber area changes are compatible with exterior compressibility and outer boundary conditions. A fully filled incompressible exterior inside a sealed fixed boundary cannot accommodate arbitrary changes in excluded area. The design must supply the physical constraint or accommodation, rather than leave a solver correction to invent it.
+
+## Required design work packages
+
+Use a design milestone with separate executable children covering the work below. These are concrete design obligations, not one aggregate task called "define the contract". Each produces a concise human explanation and sufficient technical detail for its implementation consumers. Keep the coherent result in project architecture documentation; MindGraph remains the owner of task status and dependencies.
+
+| Work package | Required output and acceptance | Prerequisite information |
+| --- | --- | --- |
+| **D1. Define the physical experiment and budgets** | Specify units, physical regime, fixture, meaningful motion/transport, coefficients, supported features, outer conditions and measurable reference cases. Propose justified error limits, timescale-based horizons and finite experiment/retry budgets. Distinguish requirements from provisional assumptions. | This vision and actual project capabilities |
+| **D2. Define authoritative state and ownership** | Specify concrete state records, identity needs, amounts versus concentrations, derived geometry, committed versus trial data and a read-only observation view. Give a worked accounting example across a step. Identify the owner of every mass, momentum, resource and energy quantity. | D1 |
+| **D3. Design membrane and support mechanics** | Specify discrete geometry, elastic/bending response as needed, masses, forces, supported deformation, support constraints and reactions. Derive a small reference calculation and expected equilibrium/deformation behaviour. Define the data consumed and produced by the mechanics update. | D1, D2 |
+| **D4. Design pressure-bearing contents** | Specify pressure versus actual area, associated stored energy, contents inertia and how wall motion changes kinetic energy and work. Explain which internal motions the reduction excludes. Derive compression/deformation and rigid-motion checks appropriate to the chosen model. | D1-D3 |
+| **D5. Design the exterior fluid step** | Specify storage locations and units, discrete transport/viscosity, pressure equations, boundary conditions, solver convergence and failure criteria. Define a stationary-boundary reference with independently calculable behaviour. Explain compatibility with D4 and the global volume constraint. | D1, D2, D4 |
+| **D6. Design moving geometry and conservative fluxes** | Specify how membrane geometry determines fluid regions, face apertures, boundary motion and swept volumes. Explain cell-crossing events, tiny regions, narrow supported features and topology of the numerical fluid regions. Demonstrate local volume consistency on a small moving-wall example. | D3-D5 |
+| **D7. Design two-way coupling and accepted advancement** | Specify the actual discrete pressure/structure equations or exchange iteration, force and work pairing, time levels, convergence, timestep restrictions, retry limits and rollback state. Trace a complete coupled step, including a rejected attempt. Identify conditioning and full-step cost risks. "Use a coupled solve" is insufficient. | D2-D6 |
+| **D8. Design nutrient transfer and fuel-limited work** | Specify conservative/positive scalar transport, finite-rate uptake, conversion and reaction accounts, actuator force requests and work limits. Resolve near-empty donors, near-zero fuel, negative actuator work and rejected steps. If nutrients are dilute with negligible carrier-mass effects, state that approximation explicitly. | D1, D2, D6, D7 |
+| **D9. Reconcile the design and make implementation ready** | Assemble one consistent state/exchange contract and advancement sequence. Check units, shared boundaries, volume compatibility and ownership across D1-D8. Map every implementation task to concrete design outputs, unresolved risks and focused checks. Present the candidate and acceptance limits for human approval. | D1-D8 and the real workflow check described below |
+
+Design tasks may use small derivations or bounded disposable numerical probes when necessary to settle an uncertainty. They must not grow into independent production solvers. Where evidence is insufficient, retain a provisional assumption and name the smallest experiment that can resolve it. Consider alternatives only for a concrete unresolved choice; retain one justified candidate and brief rejection reasons.
+
+D9 is a review point. It must supply the reviewer with substantive decisions and open issues, not only a link to a document. Update the affected architecture and implementation tasks through an explicit MindGraph proposal when design findings change them. Human approval of the design permits the experiment; it does not certify the physics.
+
+## Required implementation breakdown
+
+Include implementation children beneath meaningful milestones in the initial DAG. Their objectives and dependency outputs must already be clear. Exact interfaces may be established by named design prerequisites, but must be incorporated before the dependent task runs. Revise or split affected tasks after D9 when necessary. Do not collapse this section into "implement the coupled chamber".
+
+| Work package | Implement and check together | Dependency boundary |
+| --- | --- | --- |
+| **I1. Establish the real execution/evidence seam** | Compile the existing target in a Codex-owned context; expose a minimal deterministic time/state observable through the real headless telemetry hook. Verify actual emitted values. Reuse this seam in later checks. | Existing shell and local Bitloop guidance; can precede the detailed numerical design |
+| **I2. Implement core state and atomic advancement** | Implement the approved state, requested/committed time, trial ownership and bounded failure result. Verify an intentionally rejected update preserves state and time. Do not build a generic transaction framework. | I1 and approved D2/D7 through D9 |
+| **I3. Implement membrane/support mechanics** | Implement the selected passive mechanics and reactions; check force/energy consistency and supported equilibrium/deformation cases. Return geometry and motion through the agreed interface. | I2, D3 |
+| **I4. Implement compartment pressure and inertia** | Join contents to actual chamber geometry; verify pressure-work response, mass/inertia and support accounting on the approved small cases. | I3, D4 |
+| **I5. Implement a stationary-boundary fluid reference** | Implement the minimum grid state, pressure and viscous/transport step needed by the candidate. Verify equilibrium and the approved flow reference before adding moving geometry. | I2, D5 |
+| **I6. Implement moving-boundary geometry** | Implement fluid regions, apertures, swept volumes and unsupported-feature detection. Test a boundary crossing cells and the approved degeneracy cases with local volume checks. | I3, I5, D6 |
+| **I7. Implement conservative fluid response to prescribed wall motion** | Use I6's geometry in the fluid update. Check the controlled moving-wall case, impermeability and local transported volumes. Prescribed motion is a test fixture and must not become the active organism model. | I5, I6 and the corresponding D7 contracts |
+| **I8. Implement two-way chamber-fluid exchange** | Replace prescribed wall motion with the agreed physical coupling. Verify paired reactions/work, passive equilibrium, pressure response and complete rollback on coupling failure. Reuse the existing component checks. | I4, I7, D7 |
+| **I9. Evaluate the passive coupled candidate** | Run the frozen coupled reference cases, timestep/spatial refinement and a justified repeated-motion horizon. Report local leakage/degeneracy, work residuals, convergence, retries and preliminary whole-step cost. Produce continue/reject/inconclusive evidence. | I8; this review gates resource work |
+| **I10. Implement environmental nutrient transport** | Add the approved scalar transport on the same moving geometry; test positivity, balance, gradients and impermeable-boundary behaviour. | Accepted I9, D8 |
+| **I11. Implement membrane uptake and conversion** | Add finite-rate paired transfers and conversion accounting; test zero permeability, exhausted donors and rollback without partial inventory changes. | I10, D8 |
+| **I12. Implement work-limited actuation** | Apply deterministic force requests with fuel-limited work. Test depletion, replenishment, negative-work policy and rejected-step accounting. Produce the active chamber for integrated qualification. | I11 and the accepted mechanics/coupling, D8 |
+| **I13. Make the coupled experiment visible** | Render committed membrane, fluid and resource state with the existing Bitloop view. Inspect snapshots matched to numerical observations. Supply a runnable example without adding an editor or checkpoint system. | I12 and the agreed read-only state from I8 |
+| **I14. Qualify the active single chamber** | Run the combined physical cases, active refinement and horizons covering transport, repeated actuation, depletion and replenishment. Extend beyond the first healthy window to check drift. Compare unchanged thresholds and report remaining limitations. | I12, I13; this review gates the population screen |
+| **I15. Screen shared-fluid cost and conclude** | Run the frozen 16-chamber workload at accepted quality. Measure complete advancement including retries, latency extremes and memory; report rendering/diagnostic overhead separately. Deliver reproducible evidence and an adopt/reject/inconclusive recommendation. | Accepted I14 |
+
+These work packages specify necessary boundaries and outputs, not an arbitrary target task count. Split a package further when it still combines separate unresolved mechanisms or cannot provide one worker with sufficient context. Merge only where the same implementation and checks are inseparable, explaining why. Preserve the separate geometry, fluid-reference, coupling and acceptance outcomes.
+
+I9 must occur before resource features and substantial visual polish. Do not perfect each component into a general library before reaching that coupled test. Failed or inconclusive foundation evidence stops dependent expansion; it does not authorize a prolonged optimisation campaign or silent solver substitution.
+
+## Requirements for the generated MindGraph plan
+
+**Show both hierarchy and execution dependencies.** Use `parent_id` for milestones containing the detailed design/implementation children. Parent entries summarise outcomes and derive acceptance from their children; they are grouping records, not duplicate implementation jobs. Use `depends_on` for the actual required outputs. Do not produce another flat seven-card graph or force every independent branch into a single chain.
+
+**Make each executable task usable by a fresh worker.** Its normal schema fields must state the local objective, relevant decisions, concrete prerequisite outputs/interfaces, allowed scope, produced artifact or behaviour, and focused acceptance checks. An ID or an inaccessible document link alone is insufficient. Shared design belongs in shared architecture, with the relevant contract identified in task context. Do not copy entire manuals into every task.
+
+**Keep future work visibly separate from readiness.** The initial plan may describe implementation that depends on unfinished design, but cannot claim those tasks are execution-ready. State the condition in context and encode the dependency; do not invent unsupported status fields. At D9, inspect and explicitly amend any remaining vague work before implementation starts. MindGraph does not automatically expand a broad task when a worker reaches it.
+
+**Review consequential decisions.** Put `plan_review` on D9, I9, I14 and I15, with specific questions about design readiness, coupling feasibility, active validity and cost. Use additional review points only for genuine decision-bearing experiments. Routine checks belong with their implementation. Negative experimental findings must reach review even if the experiment executed successfully.
+
+**Verify the workflow once.** After I1, request a manual review of its saved evidence and have the human confirm execution, review and save/reload before substantial implementation. Run only dependency-ready leaves and confirm review outcomes manually where the current host does not enforce readiness. Do not create simulation-side orchestration to compensate for a planning limitation.
+
+The planner is a text-only service: supplied capabilities describe available actions, not proven application hooks. Implementation workers inspect the real repository, follow applicable instructions and gather evidence. Reviewers receive the captured report and cannot inspect local artifact paths themselves.
+
+## Evidence, ownership and completion
+
+Choose physical horizons from relevant deformation, transport, relaxation and resource timescales; distinguish smoke, behavioural validation and endurance. Use cheap continuous hard-condition checks plus selected authoritative-state inspections. Extend while drift is unresolved; report inconclusive if the agreed experiment budget is exhausted. A pleasing image or globally balanced total cannot override a failing local physical check.
+
+Retain commands, source/build/configuration identity, units, thresholds, timestep, simulated duration, relevant events and measured outcomes. Put decision-bearing conclusions in the supported `mindgraph-result` fields `summary`, `checks[].name`, `issues` and `plan_concern`. Include used capabilities and artifact paths as supporting context, not substitutes for observations. For design tasks, include the agreed interface/algorithm summary, assumptions and unresolved choices needed for review. Do not invent result fields.
+
+Substrate owns simulation code, dependencies, architecture and diagnostics, and remains independently buildable. Keep `Substrate/Substrate.h` and `.cpp` thin; physical state and advancement must not depend on Scene, UI, rendering or trace serialization. Mutate simulation state in process/event hooks; drawing reads it. Reuse Bitloop's headless runner, traces and snapshots, following `AGENTS.md` and `.agents/skills/bitloop-development/SKILL.md`. Load only relevant references. Framework/other-project changes and new dependencies require the applicable explicit approval. Preserve user build state and report unavailable standalone-package validation honestly.
+
+Keep retained runs in `.codex/runs/runNNNN_YYYYMMDD_HHMMSS/`, temporary execution notes in `.codex/plans/`, and disposable probes behind `BITLOOP_DEV_MODE`. Accepted architecture records explain the implementation; they must not become a second task-status system alongside MindGraph.
+
+Completion means an understandable numerical design, a runnable coupled experiment, reproducible physical and cost evidence, and a specific foundation decision. If accepted, the next plan can introduce locomotion, contact, openings or growth against that evidence. Stop this plan at the decision; do not silently turn it into the entire biological programme.

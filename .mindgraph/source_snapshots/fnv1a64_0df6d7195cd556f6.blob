@@ -1,0 +1,72 @@
+# Substrate: first coupled prototype
+
+## Purpose and planning boundary
+
+Substrate should become a two-dimensional world where soft organisms move, feed and interact through shared physical rules. The long-term goal is hundreds of active organisms running cheaply enough for useful recorded experiments.
+
+**This initial plan ends with a small, measured prototype and a decision about its foundation.** Demonstrate that deformable tissue, pressure-bearing contents, surrounding fluid and resource-limited actuation can work together at an affordable cost. Do not generate the roadmap for the eventual biological world. The broader `VISION.md` is background; it does not expand this plan's scope.
+
+The useful outcome is a working physical primitive with evidence explaining its limits. A negative experiment is also useful if it identifies why the candidate should be rejected. Neither completed tasks nor an attractive animation establish that the foundation works.
+
+## The first useful result
+
+Build one soft chamber in a two-dimensional fluid environment:
+
+- A closed, deformable membrane encloses pressure-bearing contents. A few contractile elements change its shape through forces, rather than prescribed vertex positions.
+- The moving membrane displaces the surrounding fluid, and fluid forces act back on it. The chamber may be held by explicit supports to avoid requiring locomotion or body-contact handling. Account for support reactions.
+- One environmental nutrient crosses the membrane at a finite, declared rate and supplies an internal fuel inventory. A simple deterministic cycle requests contraction. Available fuel limits the work: activity subsides after depletion and can resume after replenishment. Define the conversion and consumption accounting explicitly.
+- The user can observe deformation, fluid motion and fuel availability through a basic Bitloop view. The same simulation runs headlessly and produces compact numerical evidence.
+
+Topology stays fixed. Choose supported shapes and deformations that avoid self-intersection and body contact; detect unsupported configurations. Swimming, one-way pumping and complex control are later outcomes, not conditions for this prototype.
+
+## Starting hypothesis
+
+Investigate connected mechanical elements for the membrane, a well-mixed compartment for its contents, and a conservative spatial grid for environmental flow and nutrient transport. Use consistent two-dimensional units; represented volume means area unless a thickness is explicitly declared.
+
+This is a hypothesis, not an accepted numerical design. The compartment must have an honest mass, inertia and pressure-work interpretation tied to actual chamber geometry. It is suitable only while unresolved internal circulation and concentration gradients do not determine the result.
+
+Select one concrete candidate and expose its difficult coupling early. Define the minimal state ownership and exchange interfaces needed for that experiment. Do not build separate mature tissue, fluid and biology subsystems before testing their interaction. If moving boundaries cannot preserve the required behaviour at bounded cost, stop for a design decision instead of accumulating corrective machinery or implementing a menu of alternative solvers.
+
+## Physical contract
+
+The prototype must satisfy these requirements within a declared range of resolution and deformation:
+
+- Advance the requested simulated interval independently of rendering. Commit only finite, valid state. A failed step preserves the last valid state and its actual time; never skip the failed interval.
+- Give each material or resource amount one authoritative owner. Inventories remain nonnegative, and balances close to declared floating-point tolerances. Transfers have paired inventory changes; reactions and external sources or sinks are explicit. Numerical corrections cannot create fuel.
+- Keep geometry, occupied volume, boundary displacement and pressure work consistent. Intact barriers block bulk flow; nutrient permeability is a separate declared transport law. Ordinary interpolation must not mix opposite sides of an impermeable boundary.
+- Pair mechanical exchanges with reactions. Distinguish actuator work, stored energy, physical dissipation and numerical error. Measured numerical damping is acceptable within a predeclared budget; sustained unexplained energy gain or loss that changes the demonstrated behaviour is not.
+- Check local behaviour as well as global balances. A conserved total cannot excuse leakage, collapsed elements, incorrect pressure response or erased concentration gradients.
+
+Before evaluating the candidate, establish its coefficients, minimum supported features, tolerances, reference cases and rejection conditions. Label unproven choices as assumptions. Changes to acceptance requirements need an explicit human decision, never an automatic response to a failing result.
+
+## Evidence and cost
+
+Use a few decisive checks alongside the implementation: passive equilibrium and containment, a controlled moving-wall case with a known volume/work or flow reference, and active contraction with nutrient uptake, depletion and replenishment. Compare the coupled result with a smaller timestep and finer spatial resolution. Inspect a snapshot for the visible claim and authoritative numerical state for the physical claims.
+
+Choose simulated horizons from deformation, transport and depletion timescales. Cover repeated activity and the relevant transitions, then run a materially longer confirmation window to check drift. State the stopping rationale. If the experiment budget ends before the behaviour is resolved, report it as inconclusive.
+
+Measure complete simulation cost, including preparation, mechanics, pressure solves, transport, safety checks and retries. Record simulated time per wall-clock second, worst step time and memory, with hardware, build and worker configuration. Report rendering and diagnostic overhead separately. Optimise only costs that the coupled measurement identifies.
+
+After the single chamber passes, screen 16 separated, active copies in one shared 128 by 128 environmental grid, using at most 128 membrane vertices per chamber. They must share fluid interaction rather than run in isolated boxes. Supports may maintain separation. Freeze the geometry and activity before timing; each chamber must perform meaningful contraction and transport.
+
+The proposed pilot target is at least one simulated second per wall-clock second on the Ryzen 9 9950X3D workstation using at most 16 CPU workers, at the accepted physical quality. This deliberately smaller workload is an early rejection screen, not acceptance of the future interacting-organism world. Failure triggers review of feasibility before further features or substantial optimisation.
+
+## Engineering boundaries
+
+Start from the existing generated Substrate project. Keep physical state and advancement independent of Scene, UI, rendering and diagnostic serialization. Keep `Substrate/Substrate.h` and `.cpp` as a thin Bitloop-facing shell; drawing only reads current state.
+
+Reuse Bitloop's lifecycle, headless execution, semantic traces and snapshots through project-owned adapters. The generated telemetry hook is initially empty; framework facilities are not proof that Substrate already supplies observations. Follow `AGENTS.md`, the local `bitloop-development` skill and relevant supplied capability hints. Keep dependencies and code inside Substrate, preserve standalone buildability and user build state, and require explicit approval for framework or other-project changes. Report unavailable package validation rather than changing dependencies to force a pass.
+
+Exclude growth, repair, damage, reproduction, evolution, thermal and phase models, free surfaces, remeshing, adaptive resolution, GPU work, general extension systems, an organism editor and a new recording or diagnostic framework. Do not create placeholder components or tasks for them.
+
+## How to plan and stop
+
+Generate a compact architecture and cohesive executable work packages for this prototype only. Keep implementation and its focused checks together. Specify concrete prerequisite outputs and interfaces in task context; an ID alone is insufficient. Leave routine coding choices to workers. Avoid duplicating this document in every task or decomposing ordinary functions into separate work packages.
+
+Use the first small implementation task to exercise a real headless observable that later checks can reuse. Before continuing, the human verifies the MindGraph execution, saved evidence, review and reload loop. This is a workflow check, not a request to build orchestration into Substrate. Run only tasks whose prerequisite results and review outcomes are ready.
+
+Put `plan_review` questions on the tasks producing decisive coupling and cost evidence. Dependent work must wait for those outcomes. Bound candidate experiments in advance; a negative or inconclusive result stops expansion and returns a specific decision to the human. Do not pre-plan speculative replacements or treat experiment completion as design adoption.
+
+Workers must place decision-bearing observations inside the supported `mindgraph-result` fields: `summary`, `checks[].name`, `issues` and `plan_concern`. Include measured values, units, thresholds, commands, configuration and source/build identity; for dynamics include timestep and simulated horizon. Bare artifact paths or prose outside that block do not reach the reviewer as sufficient evidence. Retain compact supporting runs under `.codex/runs/` without inventing schema fields or a simulation logging dependency.
+
+Finish with the runnable demonstration, reproducible checks, measured cost and a concise adopt/reject/inconclusive recommendation. Human adoption and the next planning scope are separate decisions. Stop there.

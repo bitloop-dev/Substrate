@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "msvc-release-codex",
+      "inherits": "ninja-release",
+      "binaryDir": "${sourceDir}/build/msvc-release-codex",
+      "cacheVariables": {
+        "BUILD_FLAVOR": "msvc-release-codex",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../../.vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/ninja-debug/vcpkg_installed",
+        "VCPKG_MANIFEST_INSTALL": "OFF",
+        "BITLOOP_PROVIDER": "SOURCE",
+        "BITLOOP_SOURCE_DIR": "${sourceDir}/../../bitloop",
+        "BITLOOP_DEV_MODE": "ON",
+        "BITLOOP_BUILD_TESTS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "msvc-release-codex", "configurePreset": "msvc-release-codex", "targets": ["Substrate"] }
+  ]
+}

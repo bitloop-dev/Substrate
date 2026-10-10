@@ -16,7 +16,7 @@ void Substrate_Project::UI::sidebar()
 void Substrate_Project::projectPrepare(Layout& layout)
 {
     for (int i = 0; i < viewport_count; i++)
-        layout << create<Substrate_Scene>();
+        layout << create<Substrate_Scene>("substrate-" + std::to_string(i));
 }
 
 /// ────────────────────────── scene ──────────────────────────
@@ -35,7 +35,10 @@ void Substrate_Scene::UI::sidebar()
 
 void Substrate_Scene::sceneStart()
 {
-    /// Initialize the Scene.
+    #ifdef BITLOOP_DEV_MODE
+    diagnostic_ticks = 0;
+    diagnostic_time_seconds = 0.0;
+    #endif
 }
 
 void Substrate_Scene::sceneMounted([[maybe_unused]] Viewport* ctx)
@@ -64,7 +67,11 @@ void Substrate_Scene::sceneDestroy()
 
 void Substrate_Scene::sceneProcess()
 {
-    /// Process the Scene once per frame, not once per viewport.
+    #ifdef BITLOOP_DEV_MODE
+    ++diagnostic_ticks;
+    // Bitloop frame_dt() is milliseconds; this is a lifecycle observable, not physical state.
+    diagnostic_time_seconds += frame_dt() * 0.001;
+    #endif
 
     // redraw the scene every frame
     requestRedraw(true);
@@ -82,6 +89,15 @@ void Substrate_Scene::viewportDraw(Viewport* ctx) const
     /// Draw the Scene on this viewport without modifying simulation state.
     ctx->transform(camera);
     ctx->drawWorldAxis();
+
+    #ifdef BITLOOP_DEV_MODE
+    ctx->stageMode();
+    ctx->setFillStyle(255, 255, 255);
+    ctx->setFontSize(18);
+    ctx->fillText("Diagnostic pilot - no physics", 20.0, 30.0);
+    ctx->fillText("ticks = " + std::to_string(diagnostic_ticks), 20.0, 55.0);
+    ctx->fillText("time (s) = " + std::to_string(diagnostic_time_seconds), 20.0, 80.0);
+    #endif
 }
 
 void Substrate_Scene::onEvent(Event e)
@@ -98,8 +114,11 @@ void Substrate_Scene::onEvent(Event e)
 // void Substrate_Scene::onKeyUp(KeyEvent e) {}
 
 #ifdef BITLOOP_DEV_MODE
-void Substrate_Scene::traceFrame([[maybe_unused]] SimTraceFrame& frame) const
+void Substrate_Scene::traceFrame(SimTraceFrame& frame) const
 {
+    frame.metric("diagnostic_ticks", static_cast<double>(diagnostic_ticks));
+    frame.metric("diagnostic_time_seconds", diagnostic_time_seconds);
+    frame.metric("diagnostic_kind", "lifecycle_only_no_physics");
 }
 
 bool Substrate_Scene::saveCheckpoint([[maybe_unused]] SimCheckpointWriter& writer) const

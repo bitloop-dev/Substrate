@@ -54,3 +54,4 @@ __pycache__/
 # Local Codex execution state
 /.codex/plans/
 /.codex/runs/
+dev_notes/

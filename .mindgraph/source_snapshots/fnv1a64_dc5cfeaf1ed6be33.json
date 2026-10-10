@@ -1,0 +1,307 @@
+{
+  "coverage": "Source content including dirty/untracked files; excludes generated/build directories, binaries, symlinks and credential files. Explicit evidence reads are tracked separately.",
+  "files": {
+    ".agents/skills/bitloop-development/SKILL.md": {
+      "bytes": 7061,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_1d421950b6c2d605.blob",
+      "identity": "fnv1a64:1d421950b6c2d605"
+    },
+    ".agents/skills/bitloop-development/agent-pack.json": {
+      "bytes": 2799,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_ed2305a3d53447aa.blob",
+      "identity": "fnv1a64:ed2305a3d53447aa"
+    },
+    ".agents/skills/bitloop-development/agents/openai.yaml": {
+      "bytes": 236,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_a50e4ee18e7d4a71.blob",
+      "identity": "fnv1a64:a50e4ee18e7d4a71"
+    },
+    ".agents/skills/bitloop-development/assets/health_probe_support.hpp": {
+      "bytes": 5684,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_49a6b1198be0241b.blob",
+      "identity": "fnv1a64:49a6b1198be0241b"
+    },
+    ".agents/skills/bitloop-development/references/advanced-project-workflow.md": {
+      "bytes": 11650,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_f3c336077088e5db.blob",
+      "identity": "fnv1a64:f3c336077088e5db"
+    },
+    ".agents/skills/bitloop-development/references/assets-data.md": {
+      "bytes": 2378,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_668f7f49a058a422.blob",
+      "identity": "fnv1a64:668f7f49a058a422"
+    },
+    ".agents/skills/bitloop-development/references/build-cmake.md": {
+      "bytes": 3853,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_74e2affb17b8b314.blob",
+      "identity": "fnv1a64:74e2affb17b8b314"
+    },
+    ".agents/skills/bitloop-development/references/camera-viewport.md": {
+      "bytes": 4306,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_5e365b9787f78c6f.blob",
+      "identity": "fnv1a64:5e365b9787f78c6f"
+    },
+    ".agents/skills/bitloop-development/references/checkpoints-snapshots.md": {
+      "bytes": 5204,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_fbd06be5ede5fcaf.blob",
+      "identity": "fnv1a64:fbd06be5ede5fcaf"
+    },
+    ".agents/skills/bitloop-development/references/configure-build-run.md": {
+      "bytes": 3269,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_c4005e314a6bc501.blob",
+      "identity": "fnv1a64:c4005e314a6bc501"
+    },
+    ".agents/skills/bitloop-development/references/drawing.md": {
+      "bytes": 6539,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_c94a773b46d85817.blob",
+      "identity": "fnv1a64:c94a773b46d85817"
+    },
+    ".agents/skills/bitloop-development/references/framework-map.md": {
+      "bytes": 3969,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_d4b1d4b635d7704d.blob",
+      "identity": "fnv1a64:d4b1d4b635d7704d"
+    },
+    ".agents/skills/bitloop-development/references/imgui-ui.md": {
+      "bytes": 3398,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_451b5f75997b469e.blob",
+      "identity": "fnv1a64:451b5f75997b469e"
+    },
+    ".agents/skills/bitloop-development/references/input-events.md": {
+      "bytes": 4790,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_9c608b5c60b29fec.blob",
+      "identity": "fnv1a64:9c608b5c60b29fec"
+    },
+    ".agents/skills/bitloop-development/references/performance.md": {
+      "bytes": 4145,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_c9eb35dfd8313038.blob",
+      "identity": "fnv1a64:c9eb35dfd8313038"
+    },
+    ".agents/skills/bitloop-development/references/project-workflow.md": {
+      "bytes": 5917,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_1b3297fc9cca152d.blob",
+      "identity": "fnv1a64:1b3297fc9cca152d"
+    },
+    ".agents/skills/bitloop-development/references/scene-lifecycle.md": {
+      "bytes": 4060,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_b065a1884779179e.blob",
+      "identity": "fnv1a64:b065a1884779179e"
+    },
+    ".agents/skills/bitloop-development/references/simulation-health-diagnostics.md": {
+      "bytes": 24149,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_a7d6208684aa851c.blob",
+      "identity": "fnv1a64:a7d6208684aa851c"
+    },
+    ".agents/skills/bitloop-development/references/temporary-diagnostics.md": {
+      "bytes": 3688,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e081cdbd857f7b5e.blob",
+      "identity": "fnv1a64:e081cdbd857f7b5e"
+    },
+    ".agents/skills/bitloop-development/references/threading.md": {
+      "bytes": 2317,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_a7b214d382c00f6f.blob",
+      "identity": "fnv1a64:a7b214d382c00f6f"
+    },
+    ".agents/skills/bitloop-development/references/tracing-diagnostics.md": {
+      "bytes": 8452,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_ee0d7a703b964f54.blob",
+      "identity": "fnv1a64:ee0d7a703b964f54"
+    },
+    ".agents/skills/bitloop-development/references/types.md": {
+      "bytes": 4843,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_dd43c7844cf3c0d9.blob",
+      "identity": "fnv1a64:dd43c7844cf3c0d9"
+    },
+    ".agents/skills/bitloop-development/references/visual-qa.md": {
+      "bytes": 3260,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e9469ee91ed6494e.blob",
+      "identity": "fnv1a64:e9469ee91ed6494e"
+    },
+    ".agents/skills/bitloop-development/scripts/health_session.py": {
+      "bytes": 6094,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e3bf86e75ec2c910.blob",
+      "identity": "fnv1a64:e3bf86e75ec2c910"
+    },
+    ".bitloop-workspace": {
+      "bytes": 10,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_bcdf61677c904edb.blob",
+      "identity": "fnv1a64:bcdf61677c904edb"
+    },
+    ".gitignore": {
+      "bytes": 585,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_c4cdbe2afc5568bb.blob",
+      "identity": "fnv1a64:c4cdbe2afc5568bb"
+    },
+    "AGENTS.md": {
+      "bytes": 3338,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_99a44368adba22a1.blob",
+      "identity": "fnv1a64:99a44368adba22a1"
+    },
+    "CMakeLists.txt": {
+      "bytes": 425,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_d467426868a4124e.blob",
+      "identity": "fnv1a64:d467426868a4124e"
+    },
+    "CMakePresets.json": {
+      "bytes": 4271,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_61664bbd04178793.blob",
+      "identity": "fnv1a64:61664bbd04178793"
+    },
+    "CMakeUserPresets.json": {
+      "bytes": 785,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_fbb9a62b84073b09.blob",
+      "identity": "fnv1a64:fbb9a62b84073b09"
+    },
+    "Substrate/Substrate.cpp": {
+      "bytes": 3850,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_f1649254f5921521.blob",
+      "identity": "fnv1a64:f1649254f5921521"
+    },
+    "Substrate/Substrate.h": {
+      "bytes": 2227,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_074fd01ff365a820.blob",
+      "identity": "fnv1a64:074fd01ff365a820"
+    },
+    "VISION.md": {
+      "bytes": 29685,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_2881dc9618320a01.blob",
+      "identity": "fnv1a64:2881dc9618320a01"
+    },
+    "dev_notes/VISION2.md": {
+      "bytes": 9857,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_0df6d7195cd556f6.blob",
+      "identity": "fnv1a64:0df6d7195cd556f6"
+    },
+    "dev_notes/VISION3.md": {
+      "bytes": 22113,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_85c7cdd4ddafa593.blob",
+      "identity": "fnv1a64:85c7cdd4ddafa593"
+    },
+    "docs/BOUNDARY_LAW.md": {
+      "bytes": 37081,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e88049e86717258c.blob",
+      "identity": "fnv1a64:e88049e86717258c"
+    },
+    "docs/COMPARTMENT_LAW.md": {
+      "bytes": 32713,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_4fc99e02a004a262.blob",
+      "identity": "fnv1a64:4fc99e02a004a262"
+    },
+    "docs/DIAGNOSTIC_PILOT.md": {
+      "bytes": 8910,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_d93c4bf29f1af770.blob",
+      "identity": "fnv1a64:d93c4bf29f1af770"
+    },
+    "docs/MECHANICS_LAW.md": {
+      "bytes": 34639,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_086da5c2c1d5b8b5.blob",
+      "identity": "fnv1a64:086da5c2c1d5b8b5"
+    },
+    "docs/MINDGRAPH_READINESS.md": {
+      "bytes": 23477,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_11d7c46d4051b353.blob",
+      "identity": "fnv1a64:11d7c46d4051b353"
+    },
+    "docs/PASSIVE_SPEC.md": {
+      "bytes": 12857,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_2830230c2d7df1ab.blob",
+      "identity": "fnv1a64:2830230c2d7df1ab"
+    },
+    "docs/PHYSICAL_CONTRACT.md": {
+      "bytes": 40574,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_577e838481f954a5.blob",
+      "identity": "fnv1a64:577e838481f954a5"
+    },
+    "docs/STATIONARY_FLOW_LAW.md": {
+      "bytes": 35527,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_db192b4e45aa7000.blob",
+      "identity": "fnv1a64:db192b4e45aa7000"
+    },
+    "tooling/bitloop-tooling.json": {
+      "bytes": 885,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_02a3a9068e25bb47.blob",
+      "identity": "fnv1a64:02a3a9068e25bb47"
+    },
+    "tooling/check_boundary_law.ps1": {
+      "bytes": 11883,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_0b14530edb5dd911.blob",
+      "identity": "fnv1a64:0b14530edb5dd911"
+    },
+    "tooling/check_contents_law.ps1": {
+      "bytes": 10509,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_5be7dc36630a3b57.blob",
+      "identity": "fnv1a64:5be7dc36630a3b57"
+    },
+    "tooling/check_mechanics_law.ps1": {
+      "bytes": 11119,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_678a30371be9e5d1.blob",
+      "identity": "fnv1a64:678a30371be9e5d1"
+    },
+    "tooling/check_passive_reconciliation.ps1": {
+      "bytes": 6968,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_a6b9e8365062fb07.blob",
+      "identity": "fnv1a64:a6b9e8365062fb07"
+    },
+    "tooling/check_pilot.ps1": {
+      "bytes": 3186,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_419a6ae8db1e7bc5.blob",
+      "identity": "fnv1a64:419a6ae8db1e7bc5"
+    },
+    "tooling/findBitloop.cmake": {
+      "bytes": 2398,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_43c1eebc4cd6a047.blob",
+      "identity": "fnv1a64:43c1eebc4cd6a047"
+    },
+    "tooling/scripts/update_bitloop.py": {
+      "bytes": 2219,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_9f94913cb56d059f.blob",
+      "identity": "fnv1a64:9f94913cb56d059f"
+    },
+    "tooling/scripts/update_bitloop_recursive.py": {
+      "bytes": 1411,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e98eaa28bc14496f.blob",
+      "identity": "fnv1a64:e98eaa28bc14496f"
+    },
+    "tooling/toolchain/bitloop_provider.cmake": {
+      "bytes": 7146,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_3d614d0bde5ed895.blob",
+      "identity": "fnv1a64:3d614d0bde5ed895"
+    },
+    "tooling/toolchain/discovery_shims.cmake": {
+      "bytes": 1665,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_9248953ecb1d545b.blob",
+      "identity": "fnv1a64:9248953ecb1d545b"
+    },
+    "tooling/toolchain/discovery_toolchain.cmake": {
+      "bytes": 1315,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_065de64393386acb.blob",
+      "identity": "fnv1a64:065de64393386acb"
+    },
+    "tooling/toolchain/merge_vcpkg_manifests.cmake": {
+      "bytes": 25175,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_e5180c87f0ae9c78.blob",
+      "identity": "fnv1a64:e5180c87f0ae9c78"
+    },
+    "tooling/toolchain/vcpkg_autodetect.cmake": {
+      "bytes": 12625,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_957c305d89aa5b1e.blob",
+      "identity": "fnv1a64:957c305d89aa5b1e"
+    },
+    "tooling/triplets/wasm32-emscripten-multithreaded.cmake": {
+      "bytes": 1031,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_6c9b42b6483f4529.blob",
+      "identity": "fnv1a64:6c9b42b6483f4529"
+    },
+    "vcpkg-configuration.json": {
+      "bytes": 373,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_2490c7b29d88fab8.blob",
+      "identity": "fnv1a64:2490c7b29d88fab8"
+    },
+    "vcpkg.json": {
+      "bytes": 201,
+      "content_path": ".mindgraph/source_snapshots/fnv1a64_cdd9e22b8de4f18e.blob",
+      "identity": "fnv1a64:cdd9e22b8de4f18e"
+    }
+  },
+  "identity": "fnv1a64:dc5cfeaf1ed6be33",
+  "root": "C:/dev/cpp/bitloop-workspace/bitloop-gallery/projects/Substrate"
+}
